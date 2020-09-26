@@ -29,10 +29,6 @@
 ;; TODO felipel: mention "must indent a whole function because JuliaFormatter.jl requires so"
 ;; TODO felipel: include licenses, but probably not in this file
 ;; TODO felipel: complete with "usage: require, setq indent function"
-;; TODO felipel: support environment
-;; TODO felipel: create isolated environment
-;; TODO felipel: install @ isolated env
-;; TODO felipel: option to use isolated env
 ;; TODO felipel: option to run tests in isolated env (elisp-wise)
 ;; See https://github.com/domluna/JuliaFormatter.jl
 

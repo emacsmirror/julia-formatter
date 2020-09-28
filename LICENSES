@@ -1,0 +1,6 @@
+The code in this package has two licenses:
+
+- formatter_service.jl is licensed under MIT license
+- All other code is licensed under GPL 3-or-later
+
+All licenses are specified within files

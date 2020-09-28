@@ -90,13 +90,18 @@ If it's up and running, do nothing."
   (let* ((text-to-be-formatted
           (buffer-substring-no-properties
            begin end))
+         (relative-current-line ;; line number, but relative to BEGIN
+          (+ 1
+             (-
+              (line-number-at-pos)
+              (line-number-at-pos begin))))
          (response (jsonrpc-request
                     julia-formatter--server-process-connection
                     :format
                     (list :text
                           (save-match-data
                             (split-string text-to-be-formatted "\n" nil))
-                          :current_line (line-number-at-pos))))
+                          :current_line relative-current-line)))
          (as-formatted (mapconcat 'identity response "\n")))
     ;; replace text
     (save-excursion

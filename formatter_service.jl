@@ -71,14 +71,15 @@ function defun_range(text_to_parse::AbstractString, position::Int64)
     root_expression = CSTParser.parse(text_to_parse, true)
     current_expression_start_position = 1
     for expression ∈ root_expression.args
-        current_expression_end_position = expression.fullspan - 1 + current_expression_start_position 
+        current_expression_end_position =
+            expression.fullspan - 1 + current_expression_start_position
         if current_expression_start_position ≤ position ≤ current_expression_end_position
             return current_expression_start_position, current_expression_end_position
         end
         # next loop, expression should start just after current expression
         current_expression_start_position = current_expression_end_position + 1
     end
-    @error "Could not find any defun surrounding $position-th byte in text"
+    @error string("Could not find any defun surrounding", "$(position)", "-th byte in text")
 end
 
 function pack_result(rpc_message, result)
@@ -123,7 +124,7 @@ out:
 
 This function was based on https://github.com/kdheepak/JuliaFormatter.vim/blob/02f0e67f9be07300b70d598a2119af8f915b2143/scripts/server.jl
 """
-    function run_server(instream, outstream)
+function run_server(instream, outstream)
     while true
         text = read_transport_layer(instream)
         rpc_message = JSON.parse(String(text))

@@ -40,6 +40,10 @@ function read_transport_layer(stream)
     return message_str
 end
 
+@doc raw"""
+Read "text" from JSON message and return formatted text as a list of lines.
+
+"""
 function format_data(rpc_message)
     original_lines = rpc_message["params"]["text"]
     text_to_format = join(original_lines, "\n")
@@ -81,6 +85,10 @@ function write_transport_layer(stream, response)
     write(stream, response_utf8)
 end
 
+@doc raw"""
+Read "text" and "position" from JSON message and return
+
+"""
 function defun_range(rpc_message)
     text_to_parse = join(rpc_message["params"]["text"], "\n")
     position = rpc_message["params"]["position"]
@@ -102,11 +110,9 @@ function defun_range(text_to_parse::AbstractString, position::Int64)
     @error string("Could not find any defun surrounding", "$(position)", "-th byte in text")
 end
 
-function pack_result(rpc_message, result)
-    response = Dict{String,Any}("jsonrpc" => "2.0", "id" => rpc_message["id"])
-    response["result"] = result
-end
-
+@doc raw"""
+Call "method" from rpc_message, pack the result into a json response and return it
+"""
 function dispatch_response(rpc_message)
     response = Dict{String,Any}("jsonrpc" => "2.0", "id" => rpc_message["id"])
     try
@@ -116,6 +122,7 @@ function dispatch_response(rpc_message)
         elseif "defun_range" == rpc_message["method"]
             response["result"] = defun_range(rpc_message)
         else
+            # this error is catched just below, mind you
             @error string("Unknown method ", rpc_message["method"])
         end
     catch err

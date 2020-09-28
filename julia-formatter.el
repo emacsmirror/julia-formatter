@@ -53,6 +53,7 @@
 (defgroup julia-formatter nil "JuliaFormatter.jl"
   :group 'tools)
 
+(require 'aggressive-indent)
 (require 'pcase)
 (require 'jsonrpc)
 
@@ -94,8 +95,10 @@ If it's up and running, do nothing."
 
 ;;;###autoload
 (defun julia-formatter-format-region (begin end)
-  "Format buffer using JuliaFormatter.jl."
-  ;; TODO cl-assert begin == begin-of-defun && end == end-of-defun
+  "Format region delimited by BEGIN and END  using JuliaFormatter.jl.
+
+Region must have self-contained code.  If not, the region won't be formatted and
+will remain as-is."
   (julia-formatter--ensure-server)
   (let* ((text-to-be-formatted
           (buffer-substring-no-properties
@@ -162,19 +165,29 @@ If it's up and running, do nothing."
     (`[,_ ,end]
      (goto-char end))))
 
-(defun julia-formatter-load-in-buffer ()
-  "TODO document"
+;;;###autoload
+(defun julia-formatter-setup-aggressive-indent-in-buffer ()
+  "Activate `aggressive-indent-mode' in this buffer and setup defun functions.
+
+Setup `beginning-of-defun-function', `end-of-defun-function' &
+`indent-region-function' to use the formatter service."
   (julia-formatter--ensure-server)
   (setq-local beginning-of-defun-function #'julia-formatter-beginning-of-defun)
   (setq-local end-of-defun-function #'julia-formatter-end-of-defun)
   (add-hook 'aggressive-indent-modes-to-prefer-defun
             'julia-mode)
   (setq-local indent-region-function #'julia-formatter-format-region)
-  (aggressive-indent-mode))
+  (unless aggressive-indent-mode
+    (aggressive-indent-mode)))
 
-(add-hook 'julia-mode-hook
-          #'julia-formatter-load-in-buffer)
-
+;;;###autoload
+(defun julia-formatter-setup-hooks ()
+  "Setup hooks for using JuliaFormater.jl in julio-mode."
+  ;; Start server in the background as soon as possible
+  (add-hook 'after-init-hook
+            #'julia-formatter--ensure-server)
+  ;; setup agressive-indent + formatter for julia-mode
+  (julia-formatter-setup-aggressive-indent-in-buffer))
 
 (provide 'julia-formatter)
 ;;; julia-formatter.el ends here

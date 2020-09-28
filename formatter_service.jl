@@ -2,9 +2,6 @@ using JSON
 using JuliaFormatter
 using CSTParser
 
-# force code compilation before setting up the server
-format_text("Channel()")
-
 @doc raw"""
 Read a JSON method call from stream
 
@@ -130,5 +127,9 @@ This function was based on https://github.com/kdheepak/JuliaFormatter.vim/blob/0
     end
 end
 
+
+# force code compilation just before setting up the server
+format_text("Channel()")
+defun_range("Channel()", 2)
 
 run_server(stdin, stdout)

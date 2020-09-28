@@ -5,7 +5,7 @@
 ;; Author: Felipe Lema <felipe.lema@mortemale.org>
 ;; Keywords: convenience, tools
 ;; Package-Requires: ((emacs "27.0"))
-;; URL: ???
+;; URL: https://codeberg.org/FelipeLema/julia-formatter.el
 ;; Version: 0.1
 ;; Keywords:
 

@@ -123,7 +123,7 @@ If it's up and running, do nothing."
         (kill-buffer formatted-region-buffer)))))
 
 (defun julia-formatter--defun-range ()
-  "TODO document"
+  "Send buffer to service, gen [begin end] of surrounding defun."
   (julia-formatter--ensure-server)
   (let ((response (jsonrpc-request
                    julia-formatter--server-process-connection
@@ -139,7 +139,7 @@ If it's up and running, do nothing."
 
 ;;;###autoload
 (defun julia-formatter-beginning-of-defun ()
-  "TODO: document"
+  "Get beginning of surrounding debufn from `julia-formatter--defun-range'."
   (pcase (julia-formatter--defun-range)
     (`[,begin ,_]
      (goto-char
@@ -147,10 +147,10 @@ If it's up and running, do nothing."
 
 ;;;###autoload
 (defun julia-formatter-end-of-defun ()
-"TODO: document"
-(pcase (julia-formatter--defun-range)
-  (`[,_ ,end]
-   (goto-char end))))
+  "Get beginning of surrounding debufn from `julia-formatter--defun-range'."
+  (pcase (julia-formatter--defun-range)
+    (`[,_ ,end]
+     (goto-char end))))
 
 (defun julia-formatter-load-in-buffer ()
   "TODO document"

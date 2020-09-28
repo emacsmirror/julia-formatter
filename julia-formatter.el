@@ -68,7 +68,7 @@ If it's up and running, do nothing."
           (make-instance
            'jsonrpc-process-connection
            :name "julia formatter server"
-           :on-shutdown (lambda (conn)
+           :on-shutdown (lambda (_conn)
                           (message "Julia formatter disconnected"))
            :process (lambda ()
                       (make-process

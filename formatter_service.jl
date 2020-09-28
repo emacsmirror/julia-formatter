@@ -51,17 +51,18 @@ function format_data(rpc_message)
     original_current_line = string(original_lines[current_line])
     out_text = text_to_format
     if strip(text_to_format) ≠ ""
-        out_text = format_text(text_to_format;
-                           # options that will not alter the number of lines in text
-                           # why? because altering the lines of text will confuse the users
-                           # since they're using this in live coding
-                           remove_extra_newlines=false,
-                           pipe_to_function_call=false,
-                           short_to_long_function_def=false,
-                           always_use_return=false,
-                           annotate_untyped_fields_with_any=false,
-                           always_for_in=false, # see Reactive.jl loops
-                           )
+        out_text = format_text(
+            text_to_format;
+            # options that will not alter the number of lines in text
+            # why? because altering the lines of text will confuse the users
+            # since they're using this in live coding
+            remove_extra_newlines=false,
+            pipe_to_function_call=false,
+            short_to_long_function_def=false,
+            always_use_return=false,
+            annotate_untyped_fields_with_any=false,
+            always_for_in=false, # see Reactive.jl loops
+        )
     end
     # split text into lines, right-stripped, corroctly indented
     lines = String[l for l in split(out_text, "\n")]

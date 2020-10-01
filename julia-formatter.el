@@ -76,26 +76,26 @@ If it's up and running, do nothing."
           (file-name-as-directory
            (file-name-directory
             ;; https://stackoverflow.com/a/1344894
-            (symbol-file 'julia-formatter--ensure-server))))))
-  (unless (and julia-formatter--server-process-connection
-               (jsonrpc-running-p julia-formatter--server-process-connection))
-    (setq julia-formatter--server-process-connection
-          (make-instance
-           'jsonrpc-process-connection
-           :name "julia formatter server"
-           :on-shutdown (lambda (_conn)
-                          (message "Julia formatter disconnected"))
-           :process (lambda ()
-                      (make-process
-                       :name "julia formatter server"
-                       :command (list "julia"
-                                      "--project=."
-                                      "formatter_service.jl")
-                       :connection-type 'pipe
-                       :coding 'utf-8-emacs-unix
-                       :noquery t
-                       :stderr (get-buffer-create
-                                "*julia formatter server stderr*")))))))
+            (symbol-file 'julia-formatter--ensure-server)))))
+    (unless (and julia-formatter--server-process-connection
+                 (jsonrpc-running-p julia-formatter--server-process-connection))
+      (setq julia-formatter--server-process-connection
+            (make-instance
+             'jsonrpc-process-connection
+             :name "julia formatter server"
+             :on-shutdown (lambda (_conn)
+                            (message "Julia formatter disconnected"))
+             :process (lambda ()
+                        (make-process
+                         :name "julia formatter server"
+                         :command (list "julia"
+                                        "--project=."
+                                        "formatter_service.jl")
+                         :connection-type 'pipe
+                         :coding 'utf-8-emacs-unix
+                         :noquery t
+                         :stderr (get-buffer-create
+                                  "*julia formatter server stderr*"))))))))
 
 ;;;###autoload
 (defun julia-formatter-format-region (begin end)

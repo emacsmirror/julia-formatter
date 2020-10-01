@@ -191,7 +191,8 @@ Setup `beginning-of-defun-function', `end-of-defun-function' &
   (add-hook 'after-init-hook
             #'julia-formatter--ensure-server)
   ;; setup agressive-indent + formatter for julia-mode
-  (julia-formatter-setup-aggressive-indent-in-buffer))
+  (add-hook 'julia-mode-hook
+            #'julia-formatter-setup-aggressive-indent-in-buffer))
 
 (provide 'julia-formatter)
 ;;; julia-formatter.el ends here

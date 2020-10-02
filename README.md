@@ -12,12 +12,13 @@ JuliaFormatter.jl since it needs to get the AST from the code.
 
 ## Usage
 
-The simplest way to use JuliaFormatter.jl is by activating `aggressive-indent-mode'
-and setting the proper functions
+The simplest way to use this package is by activating [`aggressive-indent-mode'](https://github.com/Malabarba/aggressive-indent-mode/)
+and setting the proper functions.
 
 Like so:
 ```elisp
-  ;; load this file after downloading this package (or installing with straight.el)
+  ;; load julia-formatter.el after downloading this package (or installing with straight.el)
+  (load-file "/somewhere/to/julia-formatter.el/julia-formatter.el")
   (require 'julia-formatter)
   ;; load aggressive indent and setup appropiate variables
   (julia-formatter-setup-hooks)

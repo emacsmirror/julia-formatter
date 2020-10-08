@@ -1,6 +1,10 @@
 Leverage JuliaFormatter.jl to indent julia code in Emacs.
 
 ## Why?
+
+There are several issues with current indentation with `julia-mode`. Several solutions (tree-sitter, SMIE, fixing current indentation engine) seem impractical.
+
+## How
 Provide formatting tools for live coding.  These tools are packed into a service
 that can be called using JSON-RPC on stdin / stdout.  Exposing JuliaFormatter.jl
 as a service because the compile time required to get the result of that

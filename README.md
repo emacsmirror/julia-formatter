@@ -1,3 +1,4 @@
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 Leverage JuliaFormatter.jl to indent julia code in Emacs.
 
 ## Why?
@@ -27,6 +28,9 @@ Like so:
   ;; load aggressive indent and setup appropiate variables
   (julia-formatter-setup-hooks)
 ```
+
+## Code of Conduct
+Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
 ## Addendum
 

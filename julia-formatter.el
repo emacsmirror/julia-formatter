@@ -117,7 +117,9 @@ will remain as-is."
                     :format
                     (list :text
                           (save-match-data
-                            (split-string text-to-be-formatted "\n" nil))
+                            (thread-first text-to-be-formatted
+                              (split-string  "\n" nil)
+                              (vconcat)))
                           :current_line relative-current-line)))
          (as-formatted (mapconcat 'identity response "\n")))
     ;; replace text
@@ -147,10 +149,11 @@ will remain as-is."
                    :defun_range
                    (list :text
                          (save-match-data
-                           (split-string
-                            (buffer-substring-no-properties
-                             (point-min) (point-max))
-                            "\n" nil))
+                           (thread-first
+                               (buffer-substring-no-properties
+                                (point-min) (point-max)))
+                           (split-string "\n" nil)
+                           (vconcat))
                          :position (point)))))
     response))
 

@@ -151,26 +151,44 @@ will remain as-is."
                          (save-match-data
                            (thread-first
                                (buffer-substring-no-properties
-                                (point-min) (point-max)))
-                           (split-string "\n" nil)
-                           (vconcat))
+                                (point-min) (point-max))
+                             (split-string "\n" nil)
+                             (vconcat)))
                          :position (point)))))
     response))
 
 ;;;###autoload
-(defun julia-formatter-beginning-of-defun ()
-  "Get beginning of surrounding debufn from `julia-formatter--defun-range'."
+(cl-defun julia-formatter-beginning-of-defun (&optional (arg 1))
+  "Get beginning of surrounding debufn from `julia-formatter--defun-range'.
+
+Move to the ARG -th beginning of defun."
   (pcase (julia-formatter--defun-range)
     (`[,begin ,_]
-     (goto-char
-      begin))))
+     (if  (or
+           (< 1 arg)
+           (<= (line-beginning-position) begin (line-end-position)));; already at begin-of-defun?
+         (progn
+           ;; move backwards
+           (forward-line -1)
+           (julia-formatter-beginning-of-defun
+            (if (< 1 arg)
+                (- arg 1)
+              arg)))
+       ;; this is the actual place I wont to jump to… go!
+       (goto-char begin)))))
 
 ;;;###autoload
 (defun julia-formatter-end-of-defun ()
   "Get beginning of surrounding debufn from `julia-formatter--defun-range'."
   (pcase (julia-formatter--defun-range)
     (`[,_ ,end]
-     (goto-char end))))
+     (if (< (line-beginning-position) end (line-end-position)) ;; already at end-of-defun?
+         (progn
+           ;; move forward to next end-defun
+           (forward-line 1)
+           (julia-formatter-end-of-defun))
+       ;; this is the actual place I wont to jump to… go!
+       (goto-char end)))))
 
 ;;;###autoload
 (defun julia-formatter-setup-aggressive-indent-in-buffer ()

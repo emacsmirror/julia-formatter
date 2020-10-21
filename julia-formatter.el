@@ -178,15 +178,21 @@ Move to the ARG -th beginning of defun."
        (goto-char begin)))))
 
 ;;;###autoload
-(defun julia-formatter-end-of-defun ()
+(cl-defun julia-formatter-end-of-defun (&optional
+                                        (arg 1))
   "Get beginning of surrounding debufn from `julia-formatter--defun-range'."
   (pcase (julia-formatter--defun-range)
     (`[,_ ,end]
-     (if (< (line-beginning-position) end (line-end-position)) ;; already at end-of-defun?
+     (if (or
+          (< 1 arg)
+          (<= (line-beginning-position) end (line-end-position))) ;; already at end-of-defun?
          (progn
            ;; move forward to next end-defun
            (forward-line 1)
-           (julia-formatter-end-of-defun))
+           (julia-formatter-end-of-defun
+            (if (< 1 arg)
+                (- arg 1)
+              arg)))
        ;; this is the actual place I wont to jump to… go!
        (goto-char end)))))
 

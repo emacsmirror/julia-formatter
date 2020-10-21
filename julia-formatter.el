@@ -54,12 +54,13 @@
 
 ;;; Code:
 ;;;
-(defgroup julia-formatter nil "JuliaFormatter.jl"
-  :group 'tools)
-
-(require 'aggressive-indent)
 (require 'pcase)
 (require 'jsonrpc)
+
+(declare-function aggressive-indent-mode "aggressive-indent" t t)
+
+(defgroup julia-formatter nil "JuliaFormatter.jl"
+  :group 'tools)
 
 (defvar julia-formatter--server-process-connection
   nil

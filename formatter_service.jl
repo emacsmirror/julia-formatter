@@ -126,8 +126,12 @@ function dispatch_response(rpc_message)
             # this error is catched just below, mind you
             @error string("Unknown method ", rpc_message["method"])
         end
-    catch err
-        response["error"] = Dict("code" => 0, "message" => string(err))
+        catch
+            stack_buffer = IOBuffer()
+            for (exc, bt) in Base.catch_stack()
+                showerror(stack_buffer, exc, bt)
+            end
+        response["error"] = Dict("code" => 0, "message" => String(take!(stack_buffer)))
     end
     return JSON.json(response)
 

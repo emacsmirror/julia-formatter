@@ -1,19 +1,11 @@
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 Leverage JuliaFormatter.jl to indent julia code in Emacs.
+
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
+
 
 ## Why?
 
 There are several issues with current indentation with `julia-mode`. Several solutions (tree-sitter, SMIE, fixing current indentation engine) seem impractical.
-
-## How
-Provide formatting tools for live coding.  These tools are packed into a service
-that can be called using JSON-RPC on stdin / stdout.  Exposing JuliaFormatter.jl
-as a service because the compile time required to get the result of that
-first format_text() call is considerable and it hinders the coding process.
-
-The code that's being formatted must be self-contained (parseable, all if's
-and while's with a corresponding end).  This is a requirement from
-JuliaFormatter.jl since it needs to get the AST from the code.
 
 ## Usage
 
@@ -29,7 +21,21 @@ Like so:
   (julia-formatter-setup-hooks)
 ```
 
+## How
+
+This packages is comprised by several pieces.
+- Pack text formatting ([JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl)) into a service that will be used with live coding.
+- Expose this service with JSON-RPC on stdin / stdout.
+- Boot/start this service from Emacs
+- Send julia code from a buffer (by either manual command or automatized indent) to the service, get formatted code and paste it into the buffer.
+
+The exposure of JuliaFormatter.jl is done as a service because calling `format_text()` as a standalone script takes a lot of time. This would hinder the coding process.
+
+The code that's being formatted must be self-contained (parseable, all `if`'s and `while`'s must have a corresponding `end`, all parentheses must be closed, etc).  This is a requirement from JuliaFormatter.jl since it will fail if the code cannot be fully parsed.
+
+
 ## Code of Conduct
+
 Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms.
 
 ## Addendum

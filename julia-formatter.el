@@ -54,6 +54,7 @@
 
 ;;; Code:
 ;;;
+(require 'cl-lib)
 (require 'pcase)
 (require 'jsonrpc)
 
@@ -213,7 +214,7 @@ Setup `beginning-of-defun-function', `end-of-defun-function' &
     (aggressive-indent-mode)))
 
 ;;;###autoload
-(defun julia-formatter-setup-hooks ()
+(defun julia-formatter-setup-aggressive-hooks ()
   "Setup hooks for using JuliaFormater.jl in julio-mode."
   ;; Start server in the background as soon as possible
   (add-hook 'after-init-hook
@@ -221,6 +222,17 @@ Setup `beginning-of-defun-function', `end-of-defun-function' &
   ;; setup agressive-indent + formatter for julia-mode
   (add-hook 'julia-mode-hook
             #'julia-formatter-setup-aggressive-indent-in-buffer))
+
+(defun julia-formatter-setup-for-save ()
+  "Setup hook for formatting before saving."
+  (cl-assert (eq major-mode 'julia-mode))
+  (add-hook 'before-save-hook
+            (lambda ()
+              (julia-formatter-format-region
+               (point-min)
+               (point-max)))
+            nil
+            t))
 
 (provide 'julia-formatter)
 ;;; julia-formatter.el ends here

@@ -9,7 +9,24 @@ There are several issues with current indentation with `julia-mode`. Several sol
 
 ## Usage
 
-The simplest way to use this package is by activating [`aggressive-indent-mode'](https://github.com/Malabarba/aggressive-indent-mode/)
+The simplest way to use this package is by activating format on save on Julia buffers like so:
+
+```elisp
+  ;; load julia-formatter.el after downloading this package (or installing with straight.el)
+  (load-file "/somewhere/to/julia-formatter.el/julia-formatter.el")
+  (require 'julia-formatter)
+  (add-hook 'julia-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook
+                      (lambda ()
+                        (julia-formatter-format-region
+                         (point-min)
+                         (point-max)))
+                      nil
+                      t)))
+```
+
+Alternatively, formatting can be done live by activating [`aggressive-indent-mode'](https://github.com/Malabarba/aggressive-indent-mode/)
 and setting the proper functions.
 
 Like so:
@@ -18,7 +35,7 @@ Like so:
   (load-file "/somewhere/to/julia-formatter.el/julia-formatter.el")
   (require 'julia-formatter)
   ;; load aggressive indent and setup appropiate variables
-  (julia-formatter-setup-hooks)
+  (julia-formatter-setup-aggressive-hooks)
 ```
 
 ## How

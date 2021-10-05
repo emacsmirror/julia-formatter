@@ -57,10 +57,11 @@
 (require 'cl-lib)
 (require 'pcase)
 (require 'jsonrpc)
+(require 'subr-x)
 
 (declare-function aggressive-indent-mode "aggressive-indent" t t)
 
-(defgroup julia-formatter nil "JuliaFormatter.jl"
+(defgroup julia-formatter nil "JuliaFormatter.jl group."
   :group 'tools)
 
 (defvar julia-formatter--server-process-connection
@@ -182,7 +183,9 @@ Move to the ARG -th beginning of defun."
 ;;;###autoload
 (cl-defun julia-formatter-end-of-defun (&optional
                                         (arg 1))
-  "Get beginning of surrounding debufn from `julia-formatter--defun-range'."
+  "Get beginning of surrounding debufn from `julia-formatter--defun-range'.
+
+See `end-of-defun-function' to understand values of ARG."
   (pcase (julia-formatter--defun-range)
     (`[,_ ,end]
      (if (or

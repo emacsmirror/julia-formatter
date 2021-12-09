@@ -4,7 +4,7 @@
 
 ;; Author: Felipe Lema <felipe.lema@mortemale.org>
 ;; Keywords: convenience, tools
-;; Package-Requires: ((emacs "27.0"))
+;; Package-Requires: ((emacs "27.1"))
 ;; URL: https://codeberg.org/FelipeLema/julia-formatter.el
 ;; Version: 0.1
 ;; Keywords:
@@ -121,8 +121,8 @@ will remain as-is."
                     (list :text
                           (save-match-data
                             (thread-first text-to-be-formatted
-                              (split-string  "\n" nil)
-                              (vconcat)))
+                                          (split-string  "\n" nil)
+                                          (vconcat)))
                           :current_line relative-current-line)))
          (as-formatted (mapconcat 'identity response "\n")))
     ;; replace text
@@ -213,7 +213,7 @@ Setup `beginning-of-defun-function', `end-of-defun-function' &
   (add-hook 'aggressive-indent-modes-to-prefer-defun
             'julia-mode)
   (setq-local indent-region-function #'julia-formatter-format-region)
-  (unless aggressive-indent-mode
+  (unless (bound-and-true-p aggressive-indent-mode)
     (aggressive-indent-mode)))
 
 ;;;###autoload

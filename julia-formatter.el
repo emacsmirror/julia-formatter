@@ -111,10 +111,10 @@ will remain as-is."
           (buffer-substring-no-properties
            begin end))
          (relative-current-line ;; line number, but relative to BEGIN
-          (+ 1
-             (-
-              (line-number-at-pos)
-              (line-number-at-pos begin))))
+          (1+
+           (-
+            (line-number-at-pos)
+            (line-number-at-pos begin))))
          (response (jsonrpc-request
                     julia-formatter--server-process-connection
                     :format
@@ -124,17 +124,22 @@ will remain as-is."
                                           (split-string  "\n" nil)
                                           (vconcat)))
                           :current_line relative-current-line)))
-         (as-formatted (mapconcat 'identity response "\n")))
+         (as-formatted (mapconcat #'identity response "\n")))
     ;; replace text
     (save-excursion
       (let ((formatting-buffer
              (current-buffer))
             (formatted-region-buffer
-             ;; I don't trust `with-temp-buffer', prove me wrong
-             (get-buffer-create (format "*formatted julia region %s*"
-                                        (string-trim
-                                         (shell-command-to-string
-                                          "openssl rand -base64 15"))))))
+             ;; one should be able to do `with-temp-buffer', `insert',
+             ;; `replace-buffer-contents'… but it didn't work last time I tried
+             ;;
+             ;; instead, I'm manually building a temp buffer I know works
+             (get-buffer-create
+              (format "*formatted julia region %s*"
+                      ;; http://xahlee.info/emacs/emacs/elisp_insert_random_number_string.html
+                      (format
+                       (concat "%0" (number-to-string 10) "x" )
+                       (random (1- (expt 16 10))))))))
         (with-current-buffer formatted-region-buffer
           (insert as-formatted))
         (with-current-buffer formatting-buffer

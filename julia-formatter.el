@@ -127,27 +127,15 @@ will remain as-is."
          (as-formatted (mapconcat #'identity response "\n")))
     ;; replace text
     (save-excursion
-      (let ((formatting-buffer
-             (current-buffer))
-            (formatted-region-buffer
-             ;; one should be able to do `with-temp-buffer', `insert',
-             ;; `replace-buffer-contents'… but it didn't work last time I tried
-             ;;
-             ;; instead, I'm manually building a temp buffer I know works
-             (get-buffer-create
-              (format "*formatted julia region %s*"
-                      ;; http://xahlee.info/emacs/emacs/elisp_insert_random_number_string.html
-                      (format
-                       (concat "%0" (number-to-string 10) "x" )
-                       (random (1- (expt 16 10))))))))
-        (with-current-buffer formatted-region-buffer
-          (insert as-formatted))
-        (with-current-buffer formatting-buffer
-          (save-restriction
-            (narrow-to-region begin end)
-            (replace-buffer-contents
-             formatted-region-buffer)))
-        (kill-buffer formatted-region-buffer)))))
+      (let ((formatting-buffer (current-buffer)))
+        (with-temp-buffer
+          (insert as-formatted)
+          (let ((formatted-region-buffer (current-buffer)))
+            (with-current-buffer formatting-buffer
+              (save-restriction
+                (narrow-to-region begin end)
+                (replace-buffer-contents
+                 formatted-region-buffer)))))))))
 
 (defun julia-formatter--defun-range ()
   "Send buffer to service, gen [begin end] of surrounding defun."

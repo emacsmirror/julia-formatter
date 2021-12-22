@@ -15,15 +15,10 @@ The simplest way to use this package is by activating format on save on Julia bu
   ;; load julia-formatter.el after downloading this package (or installing with straight.el)
   (load-file "/somewhere/to/julia-formatter.el/julia-formatter.el")
   (require 'julia-formatter)
-  (add-hook 'julia-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook
-                      (lambda ()
-                        (julia-formatter-format-region
-                         (point-min)
-                         (point-max)))
-                      nil
-                      t)))
+  (add-hook 'julia-mode-hook #'julia-formatter-mode)
+
+  ;; (recommended) load the server in the background after startup
+  (add-hook 'after-init-hook #'julia-formatter--ensure-server)
 ```
 
 Alternatively, formatting can be done live by activating [`aggressive-indent-mode'](https://github.com/Malabarba/aggressive-indent-mode/)
@@ -31,11 +26,7 @@ and setting the proper functions.
 
 Like so:
 ```elisp
-  ;; load julia-formatter.el after downloading this package (or installing with straight.el)
-  (load-file "/somewhere/to/julia-formatter.el/julia-formatter.el")
-  (require 'julia-formatter)
-  ;; load aggressive indent and setup appropiate variables
-  (julia-formatter-setup-aggressive-hooks)
+  (add-hook 'julia-formatter-mode-hook #'aggressive-indent)
 ```
 
 ## How

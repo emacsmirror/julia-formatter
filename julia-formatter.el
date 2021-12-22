@@ -64,6 +64,10 @@
 (defgroup julia-formatter nil "JuliaFormatter.jl group."
   :group 'tools)
 
+(defcustom julia-formatter-setup-for-save
+  t
+  "When non-nil, format before save when julia-formatter-mode is activated.")
+
 (defvar julia-formatter--server-process-connection
   nil
   "Connection to running server to query for formatter process.
@@ -195,40 +199,41 @@ See `end-of-defun-function' to understand values of ARG."
        (goto-char end)))))
 
 ;;;###autoload
-(defun julia-formatter-setup-aggressive-indent-in-buffer ()
-  "Activate `aggressive-indent-mode' in this buffer and setup defun functions.
-
-Setup `beginning-of-defun-function', `end-of-defun-function' &
-`indent-region-function' to use the formatter service."
-  (julia-formatter--ensure-server)
-  (setq-local beginning-of-defun-function #'julia-formatter-beginning-of-defun)
-  (setq-local end-of-defun-function #'julia-formatter-end-of-defun)
-  (add-hook 'aggressive-indent-modes-to-prefer-defun
-            'julia-mode)
-  (setq-local indent-region-function #'julia-formatter-format-region)
-  (unless (bound-and-true-p aggressive-indent-mode)
-    (aggressive-indent-mode)))
+(defun julia-formatter-format-buffer ()
+  "Format the whole buffer"
+  (save-restriction
+    (widen)
+    (julia-formatter-format-region
+     (point-min)
+     (point-max))))
 
 ;;;###autoload
-(defun julia-formatter-setup-aggressive-hooks ()
-  "Setup hooks for using JuliaFormater.jl in julio-mode."
-  ;; Start server in the background as soon as possible
-  (add-hook 'after-init-hook
-            #'julia-formatter--ensure-server)
-  ;; setup agressive-indent + formatter for julia-mode
-  (add-hook 'julia-mode-hook
-            #'julia-formatter-setup-aggressive-indent-in-buffer))
+(define-minor-mode julia-formatter-mode
+  "Setup buffer for formatting code using indenting functions.
 
-(defun julia-formatter-setup-for-save ()
-  "Setup hook for formatting before saving."
-  (cl-assert (eq major-mode 'julia-mode))
-  (add-hook 'before-save-hook
-            (lambda ()
-              (julia-formatter-format-region
-               (point-min)
-               (point-max)))
-            nil
-            t))
+See documentation on `indent-region-function' for different ways you can indent
+current buffer (by line, by region, whole buffer ...)
+
+When `julia-formatter-setup-for-save' is non-nil, will format buffer before
+saving."
+  (julia-formatter--ensure-server)
+  (setq-local beginning-of-defun-function
+              (if julia-formatter-mode
+                  #'julia-formatter-beginning-of-defun
+                (default-value beginning-of-defun-function)))
+  (setq-local end-of-defun-function
+              (if julia-formatter-mode
+                  #'julia-formatter-end-of-defun
+                (default-value end-of-defun-function)))
+  (setq-local indent-region-function
+              (if julia-formatter-mode
+                  #'julia-formatter-format-region
+                (default-value indent-region-function)))
+  (when (boundp 'aggressive-indent-modes-to-prefer-defun)
+    (add-hook 'aggressive-indent-modes-to-prefer-defun 'julia-mode))
+  (if julia-formatter-mode
+      (add-hook 'before-save-hook #'julia-formatter-format-buffer nil t)
+    (remove-hook 'before-save-hook #'julia-formatter-format-buffer t)))
 
 (provide 'julia-formatter)
 ;;; julia-formatter.el ends here

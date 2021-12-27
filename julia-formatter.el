@@ -81,10 +81,12 @@ slow startup and quick response.")
 
 If it's up and running, do nothing."
   (let ((default-directory ;; run at the basename of this script file
-          (file-name-as-directory
-           (file-name-directory
+         (file-name-as-directory
+          (file-name-directory
+           (or
+            (locate-library "julia-formatter")
             ;; https://stackoverflow.com/a/1344894
-            (symbol-file 'julia-formatter--ensure-server)))))
+            (symbol-file 'julia-formatter--ensure-server))))))
     (unless (and julia-formatter--server-process-connection
                  (jsonrpc-running-p julia-formatter--server-process-connection))
       (setq julia-formatter--server-process-connection

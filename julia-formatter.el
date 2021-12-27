@@ -66,7 +66,8 @@
 
 (defcustom julia-formatter-setup-for-save
   t
-  "When non-nil, format before save when julia-formatter-mode is activated.")
+  "When non-nil, format before save when julia-formatter-mode is activated."
+  :type 'boolean)
 
 (defvar julia-formatter--server-process-connection
   nil

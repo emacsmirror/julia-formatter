@@ -217,6 +217,7 @@ current buffer (by line, by region, whole buffer ...)
 
 When `julia-formatter-setup-for-save' is non-nil, will format buffer before
 saving."
+  :lighter " fmt.jl"
   (julia-formatter--ensure-server)
   (setq-local beginning-of-defun-function
               (if julia-formatter-mode

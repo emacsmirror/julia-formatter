@@ -6,7 +6,7 @@
 ;; Keywords: convenience, tools
 ;; Package-Requires: ((emacs "27.1"))
 ;; URL: https://codeberg.org/FelipeLema/julia-formatter.el
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify

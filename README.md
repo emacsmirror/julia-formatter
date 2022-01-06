@@ -1,4 +1,4 @@
-Leverage JuliaFormatter.jl to indent julia code in Emacs.
+Use JuliaFormatter.jl to format julia code in Emacs.
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
@@ -22,7 +22,7 @@ The simplest way to use this package is by activating format on save on Julia bu
 ```
 
 Alternatively, formatting can be done live by activating [`aggressive-indent-mode'](https://github.com/Malabarba/aggressive-indent-mode/)
-and setting the proper functions.
+and setting the proper indentation functions (yes, indentation functionality can be leveraged for live formatting).
 
 Like so:
 ```elisp

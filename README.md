@@ -2,6 +2,7 @@ Use JuliaFormatter.jl to format julia code in Emacs.
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
+[![MELPA](https://melpa.org/packages/julia-formatter-badge.svg)](https://melpa.org/#/julia-formatter)
 
 ## Why?
 
@@ -12,8 +13,10 @@ There are several issues with current indentation with `julia-mode`. Several sol
 The simplest way to use this package is by activating format on save on Julia buffers like so:
 
 ```elisp
-  ;; load julia-formatter.el after downloading this package (or installing with straight.el)
+  ;; load julia-formatter.el after downloading this package
+  ;; You can also install with MELPA or with straight.el and skip this line
   (load-file "/somewhere/to/julia-formatter.el/julia-formatter.el")
+
   (require 'julia-formatter)
   (add-hook 'julia-mode-hook #'julia-formatter-mode)
 

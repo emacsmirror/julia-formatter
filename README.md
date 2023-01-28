@@ -31,6 +31,21 @@ Like so:
 ```elisp
   (add-hook 'julia-formatter-mode-hook #'aggressive-indent)
 ```
+### Doom Emacs
+
+Because this package also contains project files to handle Julia dependencies, we need to explicitly tell [Doom](https://docs.doomemacs.org/latest/) (through [straight.el](https://github.com/radian-software/straight.el)):
+Like so:
+
+```elisp
+;; add the following to packages.el
+(package! julia-mode) ;; you probably already have this line
+(package! julia-formatter
+  :recipe (:host codeberg :repo "FelipeLema/julia-formatter.el"
+           :files ( "julia-formatter.el" ;; main script executed by Emacs
+                    "formatter_service.jl" ;; script executed by Julia
+                    "Manifest.toml" "Project.toml" ;; project files
+                    )))
+```
 
 ## How
 

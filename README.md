@@ -47,6 +47,12 @@ Like so:
                     )))
 ```
 
+### No other dependencies ?
+
+No. Julia packages are handled with this repo's Project.toml & Manifest.toml files.
+
+Think Python's virtual-envs.
+
 ## How
 
 This packages is comprised by several pieces.

@@ -57,3 +57,17 @@ endif
 .DEFAULT: init
 init:
 	@./makem.sh $(DEBUG) $(VERBOSE) $(SANDBOX) $(INSTALL_DEPS) $(INSTALL_LINTERS)
+
+JULIA = julia
+
+.instantiated-marker:
+	$(JULIA) --project=. -e 'using Pkg; Pkg.instantiate(); write(open(".instantiated-marker","w"), "")'
+
+formatter_service_precompile.jl: .instantiated-marker
+	$(JULIA) --project=. --trace-compile=formatter_service_precompile.jl -e 'using JSON; using JuliaFormatter; using CSTParser; JSON.json(JSON.parse("{\"a\":[1,2]}"));format_text("Channel()"); CSTParser.parse("Channel()")'
+
+formatter_service_sysimage.so: formatter_service_precompile.jl
+	$(JULIA) --project=. -e 'using PackageCompiler;PackageCompiler.create_sysimage(["JSON", "JuliaFormatter", "CSTParser"],sysimage_path="formatter_service_sysimage.so", precompile_statements_file="formatter_service_precompile.jl")'
+
+run-service: formatter_service_sysimage.so
+	@$(JULIA) --project=. --sysimage=formatter_service_sysimage.so formatter_service.jl

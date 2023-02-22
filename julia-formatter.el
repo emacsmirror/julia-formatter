@@ -155,8 +155,8 @@ will remain as-is."
                    (list :text
                          (save-match-data
                            (thread-first
-                               (buffer-substring-no-properties
-                                (point-min) (point-max))
+                             (buffer-substring-no-properties
+                              (point-min) (point-max))
                              (split-string "\n" nil)
                              (vconcat)))
                          :position (point)))))
@@ -205,7 +205,7 @@ See `end-of-defun-function' to understand values of ARG."
 
 ;;;###autoload
 (defun julia-formatter-format-buffer ()
-  "Format the whole buffer"
+  "Format the whole buffer."
   (save-restriction
     (widen)
     (julia-formatter-format-region

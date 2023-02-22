@@ -49,7 +49,6 @@ Like so:
            :files ( "julia-formatter.el" ;; main script executed by Emacs
                     "formatter_service.jl" ;; script executed by Julia
                     "Manifest.toml" "Project.toml" ;; project files
-                    "Makefile" ;; to build sys-image (only 1st format is slowest)
                     )))
 ```
 

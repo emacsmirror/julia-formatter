@@ -60,6 +60,7 @@
 (require 'pcase)
 (require 'jsonrpc)
 (require 'subr-x)
+(require 'compile)
 
 (declare-function aggressive-indent-mode "aggressive-indent" t t)
 
@@ -71,26 +72,92 @@
   "When non-nil, format before save when julia-formatter-mode is activated."
   :type 'boolean)
 
+(defcustom julia-formatter-should-compile-julia-image
+  'always-prompt
+  "How to prompt the user for image compilation.
+
+Image compilation is done to avoid the \"freezes Emacs on first formatting\"
+problem, also known as \"the first plot problem\".
+Compilation will take some minutes, so it's worth doing so in the long run."
+  :type '(radio
+          (const always-prompt)
+          (const never-compile)
+          (const always-compile)))
+
 (defvar julia-formatter--server-process-connection
   nil
-  "Connection to running server to query for formatter process.
+  "Connection to running server to query for formatter process.")
 
-I recommend using JuliaFormatter.jl as a global service because the service has
-slow startup and quick response.")
+(defsubst julia-formatter--server-running-p ()
+  "Return non-nil if server is running."
+  (and julia-formatter--server-process-connection
+       (jsonrpc-running-p julia-formatter--server-process-connection)))
 
-(defun julia-formatter--ensure-server ()
-  "Make sure the formatter service is running.
+(defsubst julia-formatter--shutdown-server-if-running ()
+  "Shutdown server, but only if running.
 
-If it's up and running, do nothing."
-  (let ((default-directory ;; run at the basename of this script file
+If not running, do nothing."
+  (when (julia-formatter--server-running-p)
+    (jsonrpc-shutdown julia-formatter--server-process-connection)))
+
+(defsubst julia-formatter--package-directory ()
+  "Return directory for `julia-formatter' package.
+
+Useful for loading Julia scripts and such."
+  (let ((this-package-directory
          (file-name-as-directory
           (file-name-directory
            (or
             (locate-library "julia-formatter")
             ;; https://stackoverflow.com/a/1344894
-            (symbol-file 'julia-formatter--ensure-server))))))
-    (unless (and julia-formatter--server-process-connection
-                 (jsonrpc-running-p julia-formatter--server-process-connection))
+            (symbol-file 'julia-formatter-compile-image))))))
+    (cl-assert this-package-directory)
+    this-package-directory))
+
+;;;###autoload
+(defun julia-formatter-compile-image ()
+  "Pull up a buffer to compile image.
+
+Returns t."
+  (interactive)
+  (let* ((default-directory (julia-formatter--package-directory)))
+    (switch-to-buffer-other-window
+     (cl-flet ((_jcmd (args-as-string)
+                      (format "julia --color=no --project=. %s" args-as-string)))
+       (compile (string-join
+                 (list
+                  (format "cd %s" default-directory)
+                  "set -xv"
+                  (_jcmd "-e 'using Pkg;Pkg.instantiate()'")
+                  (_jcmd "--trace-compile=formatter_service_precompile.jl -e 'using JSON; using JuliaFormatter; using CSTParser; JSON.json(JSON.parse(\"{\\\"a\\\":[1,2]}\"));format_text(\"Channel()\"); CSTParser.parse(\"Channel()\")'")
+                  (_jcmd "-e 'using PackageCompiler;PackageCompiler.create_sysimage([\"JSON\", \"JuliaFormatter\", \"CSTParser\"],sysimage_path=\"formatter_service_sysimage.so\", precompile_statements_file=\"formatter_service_precompile.jl\")'"))
+                 " \\\n && "))))
+    t))
+
+(defun julia-formatter--should-use-image ()
+  "Return non-nil if should run server with pre-compiled image."
+  (if (let ((default-directory (julia-formatter--package-directory)))
+        (file-exists-p "formatter_service_sysimage.so"))
+      t
+    ;; file does not exist... should it?
+    (pcase julia-formatter-should-compile-julia-image
+      (`always-prompt
+       (when (y-or-n-p "Would you like to pre-compile Julia image (takes time, still recommended)?")
+         (julia-formatter-compile-image)))
+      (`never-compile
+       nil)
+      (`always-compile
+       (julia-formatter-compile-image))
+      (_ (error "Unexpected value for `julia-formatter-should-compile-julia-image'")))
+    ;; return nil because image file does not exist (just yet)
+    nil))
+
+(defun julia-formatter--ensured-server ()
+  "Make sure the formatter service is running.
+
+If it's up and running, do nothing."
+  (let ((default-directory (julia-formatter--package-directory)))
+    (unless (julia-formatter--server-running-p)
       (setq julia-formatter--server-process-connection
             (make-instance
              'jsonrpc-process-connection
@@ -100,9 +167,12 @@ If it's up and running, do nothing."
              :process (lambda ()
                         (make-process
                          :name "julia formatter server"
-                         :command (list "julia"
-                                        "--project=."
-                                        "formatter_service.jl")
+                         :command
+                         (append
+                          `("julia")
+                          (when (julia-formatter--should-use-image)
+                            `("--sysimage=formatter_service_sysimage.so"))
+                          `("ensure_compiled_and_launch.jl"))
                          :connection-type 'pipe
                          :coding 'utf-8-emacs-unix
                          :noquery t
@@ -115,7 +185,6 @@ If it's up and running, do nothing."
 
 Region must have self-contained code.  If not, the region won't be formatted and
 will remain as-is."
-  (julia-formatter--ensure-server)
   (let* ((text-to-be-formatted
           (buffer-substring-no-properties
            begin end))
@@ -148,15 +217,14 @@ will remain as-is."
 
 (defun julia-formatter--defun-range ()
   "Send buffer to service, gen [begin end] of surrounding defun."
-  (julia-formatter--ensure-server)
   (let ((response (jsonrpc-request
                    julia-formatter--server-process-connection
                    :defun_range
                    (list :text
                          (save-match-data
                            (thread-first
-                               (buffer-substring-no-properties
-                                (point-min) (point-max))
+                             (buffer-substring-no-properties
+                              (point-min) (point-max))
                              (split-string "\n" nil)
                              (vconcat)))
                          :position (point)))))
@@ -205,7 +273,7 @@ See `end-of-defun-function' to understand values of ARG."
 
 ;;;###autoload
 (defun julia-formatter-format-buffer ()
-  "Format the whole buffer"
+  "Format the whole buffer."
   (save-restriction
     (widen)
     (julia-formatter-format-region
@@ -222,7 +290,9 @@ current buffer (by line, by region, whole buffer ...)
 When `julia-formatter-setup-for-save' is non-nil, will format buffer before
 saving."
   :lighter " fmt.jl"
-  (julia-formatter--ensure-server)
+
+  (julia-formatter--ensured-server)
+
   (setq-local beginning-of-defun-function
               (if julia-formatter-mode
                   #'julia-formatter-beginning-of-defun

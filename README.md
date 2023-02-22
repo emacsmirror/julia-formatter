@@ -19,9 +19,6 @@ The simplest way to use this package is by activating format on save on Julia bu
 
   (require 'julia-formatter)
   (add-hook 'julia-mode-hook #'julia-formatter-mode)
-
-  ;; (recommended) load the server in the background after startup
-  (add-hook 'after-init-hook #'julia-formatter--ensure-server)
 ```
 
 Alternatively, formatting can be done live by activating [`aggressive-indent-mode'](https://github.com/Malabarba/aggressive-indent-mode/)
@@ -31,6 +28,14 @@ Like so:
 ```elisp
   (add-hook 'julia-formatter-mode-hook #'aggressive-indent)
 ```
+### Julia Image compilation prompt
+
+This package currently suffers Julia's "the first plot problem". That means that Julia will compile a bunch of code for a while just before the first executed format can be finished. This translates into Emacs freezing after the first formatting-of-julia-code.
+
+This is why when you first load `julia-formatter-mode` Emacs will prompt you (the user) if you want to compile a Julia image. You should do this (press `y`) to avoid Emacs freezing. Compilation will take a while (and most likely turn your computer into a landing private jet), but after it's finished you won't have Emacs freezing again.
+
+If you don't want to be prompted about the missing image, you should customize `julia-formatter-should-compile-julia-image` (using `M-x customize-variable`).
+
 ### Doom Emacs
 
 Because this package also contains project files to handle Julia dependencies, we need to explicitly tell [Doom](https://docs.doomemacs.org/latest/) (through [straight.el](https://github.com/radian-software/straight.el)):

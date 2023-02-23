@@ -146,7 +146,10 @@ Useful for loading Julia scripts and such."
            "julia --project=. -e 'using Pkg.TOML: parsefile; using JSON; JSON.print(parsefile(\"%s\"))'"
            toml-file-path)
           (shell-command-to-string)
-          (json-parse-string))))))
+          (json-parse-string
+           ;; matches `jsonrpc--json-encode'
+           :false-object :json-false
+           :null-object nil))))))
 
 (defsubst julia-formatter--server-running-p ()
   "Return non-nil if server is running."

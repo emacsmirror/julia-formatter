@@ -4,9 +4,9 @@
 
 ;; Author: Felipe Lema <felipe.lema@mortemale.org>
 ;; Keywords: convenience, tools
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "27.1") (session-async "0.0.4"))
 ;; URL: https://codeberg.org/FelipeLema/julia-formatter.el
-;; Version: 0.2
+;; Version: 0.3
 ;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -61,6 +61,7 @@
 (require 'jsonrpc)
 (require 'subr-x)
 (require 'compile)
+(require 'session-async)
 
 (declare-function aggressive-indent-mode "aggressive-indent" t t)
 
@@ -88,17 +89,27 @@ Compilation will take some minutes, so it's worth doing so in the long run."
   nil
   "Connection to running server to query for formatter process.")
 
-(defsubst julia-formatter--server-running-p ()
-  "Return non-nil if server is running."
-  (and julia-formatter--server-process-connection
-       (jsonrpc-running-p julia-formatter--server-process-connection)))
+(defvar-local julia-formatter--config
+  `not-fetched
+  "Alist with formatter config for this buffer.
 
-(defsubst julia-formatter--shutdown-server-if-running ()
-  "Shutdown server, but only if running.
+Taken from .JuliaFormatter.el.  Accepted values are:
+        not-fetched     - should parse config file to save it.
+        (fetching . ...) - currently parsing config file.
+        ... - the actual alist with config")
 
-If not running, do nothing."
-  (when (julia-formatter--server-running-p)
-    (jsonrpc-shutdown julia-formatter--server-process-connection)))
+(defun julia-formatter--get-config-for-buffer ()
+  "Return alist representing config for this buffer.
+
+Alist represents key-value pairs from .JuliaFormatter.toml."
+  (pcase julia-formatter--config
+    (`not-fetched
+     (setq-local julia-formatter--config
+                 (iter-next (julia-formatter--parsed-toml-future))))
+    (`(fetching . ,future)
+     (iter-next future))
+    (config-alist
+     config-alist)))
 
 (defsubst julia-formatter--package-directory ()
   "Return directory for `julia-formatter' package.
@@ -113,6 +124,41 @@ Useful for loading Julia scripts and such."
             (symbol-file 'julia-formatter-compile-image))))))
     (cl-assert this-package-directory)
     this-package-directory))
+
+
+(defun julia-formatter--parsed-toml-future ()
+  "Parse toml file in background process."
+  (session-async-future
+   `(lambda ()
+      (require 'subr-x)
+      (when-let* ((toml-file-directory
+                   (locate-dominating-file ,default-directory ".JuliaFormatter.toml"))
+                  (toml-file-path
+                   (concat
+                    (file-name-as-directory
+                     (expand-file-name
+                      toml-file-directory))
+                    ".JuliaFormatter.toml"))
+                  (default-directory ,(julia-formatter--package-directory)))
+        ;; toml → json → alist
+        (thread-first
+          (format
+           "julia --project=. -e 'using Pkg.TOML: parsefile; using JSON; JSON.print(parsefile(\"%s\"))'"
+           toml-file-path)
+          (shell-command-to-string)
+          (json-parse-string))))))
+
+(defsubst julia-formatter--server-running-p ()
+  "Return non-nil if server is running."
+  (and julia-formatter--server-process-connection
+       (jsonrpc-running-p julia-formatter--server-process-connection)))
+
+(defsubst julia-formatter--shutdown-server-if-running ()
+  "Shutdown server, but only if running.
+
+If not running, do nothing."
+  (when (julia-formatter--server-running-p)
+    (jsonrpc-shutdown julia-formatter--server-process-connection)))
 
 ;;;###autoload
 (defun julia-formatter-compile-image ()
@@ -305,6 +351,8 @@ saving."
               (if julia-formatter-mode
                   #'julia-formatter-format-region
                 (default-value indent-region-function)))
+  (setq-local julia-formatter--config
+              `(fetching . ,(julia-formatter--parsed-toml-future)))
   (when (boundp 'aggressive-indent-modes-to-prefer-defun)
     (add-hook 'aggressive-indent-modes-to-prefer-defun 'julia-mode))
   (if julia-formatter-mode

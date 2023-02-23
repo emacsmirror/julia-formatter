@@ -47,22 +47,27 @@ Read "text" from JSON message and return formatted text as a list of lines.
 function format_data(rpc_message)
     original_lines = rpc_message["params"]["text"]
     text_to_format = join(original_lines, "\n")
+
     current_line = rpc_message["params"]["current_line"]
     original_current_line = string(original_lines[current_line])
+
     out_text = text_to_format
+
+    toml_config = rpc_message["params"]["toml_config"]
+    preferred_config=Dict(
+        # options that will not alter the number of lines in text
+        # why? because altering the lines of text will confuse the users
+        # since they're using this in live coding
+        "remove_extra_newlines"=>false,
+        "pipe_to_function_call"=>false,
+        "short_to_long_function_def"=>false,
+        "always_use_return"=>false,
+        "annotate_untyped_fields_with_any"=>false,
+        "always_for_in"=>false, # see Reactive.jl loops
+    )
+    actual_config=merge(preferred_config, toml_config)
     if strip(text_to_format) ≠ ""
-        out_text = format_text(
-            text_to_format;
-            # options that will not alter the number of lines in text
-            # why? because altering the lines of text will confuse the users
-            # since they're using this in live coding
-            remove_extra_newlines=false,
-            pipe_to_function_call=false,
-            short_to_long_function_def=false,
-            always_use_return=false,
-            annotate_untyped_fields_with_any=false,
-            always_for_in=false, # see Reactive.jl loops
-        )
+        out_text = format_text(text_to_format;[Symbol(k) => v for (k, v) in pairs(actual_config)]...)
     end
     # split text into lines, right-stripped, corroctly indented
     lines = String[l for l in split(out_text, "\n")]
@@ -126,11 +131,11 @@ function dispatch_response(rpc_message)
             # this error is catched just below, mind you
             @error string("Unknown method ", rpc_message["method"])
         end
-        catch
-            stack_buffer = IOBuffer()
-            for (exc, bt) in Base.catch_stack()
-                showerror(stack_buffer, exc, bt)
-            end
+    catch
+        stack_buffer = IOBuffer()
+        for (exc, bt) in Base.catch_stack()
+            showerror(stack_buffer, exc, bt)
+        end
         response["error"] = Dict("code" => 0, "message" => String(take!(stack_buffer)))
     end
     return JSON.json(response)

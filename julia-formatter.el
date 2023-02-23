@@ -248,9 +248,10 @@ will remain as-is."
                     (list :text
                           (save-match-data
                             (thread-first text-to-be-formatted
-                                          (split-string  "\n" nil)
+                                          (split-string "\n" nil)
                                           (vconcat)))
-                          :current_line relative-current-line)))
+                          :current_line relative-current-line
+                          :toml_config (julia-formatter--get-config-for-buffer))))
          (as-formatted (mapconcat #'identity response "\n")))
     ;; replace text
     (save-excursion

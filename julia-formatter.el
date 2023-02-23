@@ -101,15 +101,17 @@ Taken from .JuliaFormatter.el.  Accepted values are:
 (defun julia-formatter--get-config-for-buffer ()
   "Return alist representing config for this buffer.
 
-Alist represents key-value pairs from .JuliaFormatter.toml."
-  (pcase julia-formatter--config
-    (`not-fetched
-     (setq-local julia-formatter--config
-                 (iter-next (julia-formatter--parsed-toml-future))))
-    (`(fetching . ,future)
-     (iter-next future))
-    (config-alist
-     config-alist)))
+Alist represents key-value pairs from .JuliaFormatter.toml.
+Leverages `julia-formatter--config' to cache the config value."
+  (setq-local julia-formatter--config
+              (pcase julia-formatter--config
+                (`not-fetched
+                 (iter-next
+                  (julia-formatter--parsed-toml-future)))
+                (`(fetching . ,future)
+                 (iter-next future))
+                (config-alist
+                 config-alist))))
 
 (defsubst julia-formatter--package-directory ()
   "Return directory for `julia-formatter' package.

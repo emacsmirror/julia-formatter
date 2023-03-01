@@ -223,7 +223,7 @@ If it's up and running, do nothing."
                           `("julia")
                           (when (julia-formatter--should-use-image)
                             `("--sysimage=formatter_service_sysimage.so"))
-                          `("ensure_compiled_and_launch.jl"))
+                          `("formatter_service.jl"))
                          :connection-type 'pipe
                          :coding 'utf-8-emacs-unix
                          :noquery t

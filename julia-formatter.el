@@ -145,7 +145,7 @@ Useful for loading Julia scripts and such."
         ;; toml → json → alist
         (thread-first
           (format
-           "julia --project=. -e 'using Pkg.TOML: parsefile; using JSON; JSON.print(parsefile(\"%s\"))'"
+           "julia --project=. --startup-file=no -e 'using Pkg.TOML: parsefile; using JSON; JSON.print(parsefile(\"%s\"))'"
            toml-file-path)
           (shell-command-to-string)
           (json-parse-string
@@ -174,7 +174,7 @@ Returns t."
   (let* ((default-directory (julia-formatter--package-directory)))
     (switch-to-buffer-other-window
      (cl-flet ((_jcmd (args-as-string)
-                      (format "julia --color=no --project=. %s" args-as-string)))
+                      (format "julia --color=no --project=. --startup-file=no %s" args-as-string)))
        (compile (string-join
                  (list
                   (format "cd %s" default-directory)
@@ -221,6 +221,7 @@ If it's up and running, do nothing."
                          :command
                          (append
                           `("julia")
+                          `("--project=." "--startup-file=no")
                           (when (julia-formatter--should-use-image)
                             `("--sysimage=formatter_service_sysimage.so"))
                           `("formatter_service.jl"))

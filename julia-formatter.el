@@ -4,9 +4,9 @@
 
 ;; Author: Felipe Lema <felipe.lema@mortemale.org>
 ;; Keywords: convenience, tools
-;; Package-Requires: ((emacs "27.1") (session-async "0.0.4"))
+;; Package-Requires: ((emacs "27.1") (session-async "0.0.5"))
 ;; URL: https://codeberg.org/FelipeLema/julia-formatter.el
-;; Version: 0.3
+;; Version: 0.4
 ;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -368,3 +368,49 @@ saving."
 
 (provide 'julia-formatter)
 ;;; julia-formatter.el ends here
+
+
+(locate-dominating-file default-directory ".JuliaFormatter.toml")
+
+(when-let* ((toml-file-directory
+             (locate-dominating-file default-directory ".JuliaFormatter.toml"))
+            (toml-file-path
+             (concat
+              (file-name-as-directory
+               (expand-file-name
+                toml-file-directory))
+              ".JuliaFormatter.toml"))
+            )
+  (hash-equal
+   (thread-first
+    (format
+     "julia --project=. --startup-file=no -e 'using Pkg.TOML: parsefile; using JSON; JSON.print(parsefile(\"%s\"))'"
+     toml-file-path)
+    (shell-command-to-string)
+    (json-parse-string
+     ;; matches `jsonrpc--json-encode'
+     :false-object :json-false
+     :null-object nil)
+    )
+   )
+  (require 'toml)
+  (let* ((h (make-hash-table))
+         (a (toml:read-from-file  ".JuliaFormatter.toml")))
+    (mapcar
+     (pcase-lambda (`(,k . ,v))
+       (puthash k
+                (or v )
+                h))
+     a)
+    h)
+
+  )
+(defun hash-equal (hash1 hash2)
+  "Compare two hash tables to see whether they are equal."
+  (and (= (hash-table-count hash1)
+          (hash-table-count hash2))
+       (catch 'flag (maphash (lambda (x y)
+                               (or (equal (gethash x hash2) y)
+                                   (throw 'flag nil)))
+                             hash1)
+              (throw 'flag t))))

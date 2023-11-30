@@ -130,28 +130,22 @@ Useful for loading Julia scripts and such."
 
 (defun julia-formatter--parsed-toml-future ()
   "Parse toml file in background process."
-  (session-async-future
-   `(lambda ()
-      (require 'subr-x)
-      (when-let* ((toml-file-directory
-                   (locate-dominating-file ,default-directory ".JuliaFormatter.toml"))
-                  (toml-file-path
-                   (concat
-                    (file-name-as-directory
-                     (expand-file-name
-                      toml-file-directory))
-                    ".JuliaFormatter.toml"))
-                  (default-directory ,(julia-formatter--package-directory)))
-        ;; toml → json → alist
-        (thread-first
-          (format
-           "julia --project=. --startup-file=no -e 'using Pkg.TOML: parsefile; using JSON; JSON.print(parsefile(\"%s\"))'"
-           toml-file-path)
-          (shell-command-to-string)
-          (json-parse-string
-           ;; matches `jsonrpc--json-encode'
-           :false-object :json-false
-           :null-object nil))))))
+  (let ((this-package-directory (julia-formatter--package-directory)))
+    (session-async-future
+     `(lambda ()
+        (add-to-list 'load-path ,this-package-directory)
+        (require 'subr-x)
+        (require 'toml-respects-json)
+        (when-let* ((toml-file-directory
+                     (locate-dominating-file ,default-directory ".JuliaFormatter.toml"))
+                    (toml-file-path
+                     (concat
+                      (file-name-as-directory
+                       (expand-file-name
+                        toml-file-directory))
+                      ".JuliaFormatter.toml"))
+                    (default-directory ,this-package-directory))
+          (toml-respects-json:read-from-file toml-file-path))))))
 
 (defsubst julia-formatter--server-running-p ()
   "Return non-nil if server is running."

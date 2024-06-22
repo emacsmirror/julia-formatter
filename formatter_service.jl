@@ -71,7 +71,9 @@ function format_data(rpc_message)
     end
     # split text into lines, right-stripped, corroctly indented
     lines = String[l for l in split(out_text, "\n")]
-    if strip(original_current_line) == "" && current_line < length(lines)
+    if (strip(original_current_line) == ""
+        && current_line < length(lines)
+        && lines[current_line] == "")
         # it's very unconfortable to have the cursor move back to first column
         # of the line
         # so we'll keep the whitespace just for the line the user is standing on

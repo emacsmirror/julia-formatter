@@ -172,7 +172,6 @@ Returns t."
        (compile (string-join
                  (list
                   (format "cd %s" default-directory)
-                  "set -xv"
                   (_jcmd "-e 'using Pkg;Pkg.instantiate()'")
                   (_jcmd "--trace-compile=formatter_service_precompile.jl -e 'using JSON; using JuliaFormatter; using CSTParser; JSON.json(JSON.parse(\"{\\\"a\\\":[1,2]}\"));format_text(\"Channel()\"); CSTParser.parse(\"Channel()\")'")
                   (_jcmd "-e 'using PackageCompiler;PackageCompiler.create_sysimage([\"JSON\", \"JuliaFormatter\", \"CSTParser\"],sysimage_path=\"formatter_service_sysimage.so\", precompile_statements_file=\"formatter_service_precompile.jl\")'"))
